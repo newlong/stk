@@ -13,3 +13,8 @@
 (test-var)
 (defvar *e* 12)
 (print ((lambda () (format t "~a" *e*) (+ *e* 29))))
+(defvar *base-path* "/home/dragon/")
+(write-line *base-path*)
+(write-line (concatenate 'string *base-path* "workspace")) 
+(setq *base-path* (concatenate 'string *base-path* "workspace/sbcl"))
+(print *base-path*)
