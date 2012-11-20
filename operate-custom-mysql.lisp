@@ -2,8 +2,8 @@
 (require 'asdf)
 (setf asdf:*central-registry* 
       '(*default-pathname-defaults*
-	(concatenate 'string "~/workspace/stock/" "uffi/")
-	(concatenate 'string "~/workspace/stock/" "rt/")
+	(concatenate 'string *lisp-dirs* "uffi/")
+	(concatenate 'string *lisp-dirs* "rt/")
 	(concatenate 'string *lisp-dirs* "clsql/")))
 
 
