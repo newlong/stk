@@ -1,4 +1,5 @@
-(defvar *lisp-dirs* "~/workspace/stock/" "project root directory")
+;(defvar *lisp-dirs* "~/workspace/stock/" "project root directory")
+(defvar *lisp-dirs* (native-namestring *default-pathname-defaults*) "project root directory")
 (require 'asdf)
 (setf asdf:*central-registry* 
       '(*default-pathname-defaults*
