@@ -1,3 +1,4 @@
 
+(in-package #:cl-user)
 (defpackage :com.dragon.base
-         (:user :common-lisp))
+         )
