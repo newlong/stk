@@ -14,6 +14,10 @@
 (start-sql-recording)
 (enable-sql-reader-syntax)
 
-(execute-command "create table `haeder`(`id` int primary key,
+(execute-command "create table if not exists `header`(`id` int primary key auto_increment,
                                       `customer` varchar(50),
                                       `comments` varchar(50))")
+
+;; insert some record to mysql
+(execute-command "insert into `header`(`customer`,`comments`)
+                               values('newlong', 'my name is dragon')")
