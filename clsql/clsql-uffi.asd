@@ -23,6 +23,7 @@
   (merge-pathnames "uffi/"
 		   (make-pathname :name nil :type nil :defaults *load-truename*)))
 
+(format t "clsql-uffi-library: ~a" *clsql-uffi-library-dir*)
 (defclass clsql-uffi-source-file (c-source-file)
   ())
 

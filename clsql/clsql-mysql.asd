@@ -69,6 +69,8 @@
 	(and (probe-file lib) (probe-file (component-pathname c))
 	     (> (file-write-date lib) (file-write-date (component-pathname c)))))))
 
+
+(format t "firee:~a,sss" *library-file-dir*)
 ;;; System definition
 
 (defsystem :clsql-mysql

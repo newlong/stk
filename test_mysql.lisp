@@ -1,3 +1,4 @@
+
 #!/usr/local/sbcl/bin/sbcl --script
 
 (defvar *lisp-dirs* "~/workspace/stock/" "project root directory")

@@ -1,4 +1,5 @@
 #!/usr/bin/make
+##########################################################################
 # FILE IDENTIFICATION
 #
 #  Name:         Makefile
@@ -6,25 +7,38 @@
 #  Programer:    Kevin M. Rosenberg
 #  Date Started: Mar 2002
 #
-# This file, part of CLSQL, is Copyright (c) 2002-2006 by Kevin M. Rosenberg
+# This file, part of CLSQL, is Copyright (c) 2002-2010 by Kevin M. Rosenberg
 #
 # CLSQL users are granted the rights to distribute and use this software
 # as governed by the terms of the Lisp Lesser GNU Public License
 # (http://opensource.franz.com/preamble.html), also known as the LLGPL.
+##########################################################################
+
 
 SUBDIRS=
 
 include ../Makefile.common
 
-base=clsql_uffi
+PTRBITS:=$(shell gcc -o ptrbits ptrbits.c && ./ptrbits)
+
+base:=clsql_uffi
+basebits:=$(base)
+ifeq ($(PTRBITS),64)
+    basebits:=$(base)64
+endif
+ 
 source=$(base).c
-object=$(base).o
-shared_lib=$(base).so
-shared64_lib=$(base)64.so
-dylib=$(base).dylib
+object=$(basebits).o
+shared_lib=$(basebits).so
+shared_lib32=$(base)32.so
+object32=$(base)32.o
 
 .PHONY: all
-all: $(shared_lib)
+ifeq ($(PTRBITS),64)
+  all: $(shared_lib) $(shared_lib32)
+else
+  all: $(shared_lib)
+endif
 
 $(shared_lib): $(source) Makefile
 ifneq ($(OS_AIX),0)
@@ -35,37 +49,52 @@ else
 	cc -KPIC -c $(source) -o $(object)
 	cc -G $(object) -o $(shared_lib)
   else
-    ifneq ($(OS_DARWIN64),0)
-	cc -arch x86_64 -arch i386 -bundle /usr/lib/bundle1.o -flat_namespace -undefined suppress $(source) -o $(dylib)
-	cc -arch x86_64 -arch i386 -bundle /usr/lib/bundle1.o -flat_namespace -undefined suppress /usr/lib/libz.dylib -o z.dylib
+    ifneq ($(OS_DARWIN),0)
+	cc -dynamic -c $(source) -o $(object)
+	ld -bundle /usr/lib/bundle1.o -flat_namespace -undefined suppress -o $(base).dylib $(object)
+	ld -bundle /usr/lib/bundle1.o -flat_namespace -undefined suppress /usr/lib/libz.dylib -o z.dylib
+    else
+      ifneq ($(OS_CYGWIN),0)
+	gcc -c $(source) -o $(object)
+	ld -shared -soname=$(base) $(LDFLAGS) $(object) -o $(shared_lib)
+      else
+	gcc -fPIC -DPIC -c $(source) -o $(object)
+	ld -shared -soname=$(base) -lc $(object) -o $(shared_lib)
+      endif
+    endif
+  endif
+endif
+	rm $(object)
+
+ifeq ($(PTRBITS),64)
+$(shared_lib32): $(source) Makefile
+  ifneq ($(OS_AIX),0)
+	  gcc -m32 -c -D_BSD -D_NO_PROTO -D_NONSTD_TYPES -D_MBI=void $(source) -o ($object32)
+	  make_shared -o $(shared_lib32) $(object32)
+  else
+    ifneq ($(OS_SUNOS),0)
+	  cc -m32 -KPIC -c $(source) -o $(object32)
+	  cc -G $(object32) -o $(shared_lib32)
     else
       ifneq ($(OS_DARWIN),0)
-	  cc -arch i386 -bundle /usr/lib/bundle1.o -flat_namespace -undefined suppress $(source) -o $(dylib)
-	  cc -arch i386 -bundle /usr/lib/bundle1.o -flat_namespace -undefined suppress /usr/lib/libz.dylib -o z.dylib
+	  cc -m32 -dynamic -c $(source) -o $(object32)
+	  ld -bundle /usr/lib/bundle1.o -flat_namespace -undefined suppress -o $(base)32.dylib $(object32)
+	  ld -bundle /usr/lib/bundle1.o -flat_namespace -undefined suppress /usr/lib/libz32.dylib -o z.dylib
       else
         ifneq ($(OS_CYGWIN),0)
-	  gcc -c $(source) -o $(object)
-	  ld -shared -soname=$(base) $(LDFLAGS) $(object) -o $(shared_lib)
+	  gcc -m32 -c $(source) -o $(object32)
+	  ld -shared -soname=$(base) $(LDFLAGS) $(object32) -o $(shared_lib32)
         else
-          ifneq ($(OS_LINUX64),0)
-	    gcc -fPIC -DPIC -c $(source) -o $(object)
-	    ld -shared -soname=$(base) -lc $(object) -o $(shared64_lib)
-	    rm -f $(object)
-	    @echo "Ensure that you have multiarch i386 build tools if you want to build 32-bit library"
-	    -gcc -m32 -fPIC -DPIC -c $(source) -o $(object)
-	    -ld -melf_i386 -shared -soname=$(base) -lc $(object) -o $(shared_lib)
-          else
-	    gcc -fPIC -DPIC -c $(source) -o $(object)
-	    ld -shared -soname=$(base) -lc $(object) -o $(shared_lib)
+	  gcc -m32 -fPIC -DPIC -c $(source) -o $(object32)
+	  ld -shared -soname=$(base) -L /lib32 -L /usr/lib32 -lc $(object32) -o $(shared_lib32)
         endif
       endif
     endif
   endif
 endif
-endif
-	rm -f $(object)
-
+	rm $(object32)
 
 .PHONY: distclean
 distclean: clean
-	@rm -f $(dylib) $(shared_lib) $(shared64_lib) $(object) z.dylib
+	rm -f $(base).dylib $(base).dylib $(basebits).so $(base).o ptrbits
+

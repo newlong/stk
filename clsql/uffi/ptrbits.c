@@ -6,6 +6,7 @@
 
 int main() {
   char *p;
-  printf ("%d\n", 8*sizeof(p));
+  //printf ("%d\n", 8*sizeof(p));
+  printf ("%lu\n", 8*sizeof(p));
   return (0);
 }
