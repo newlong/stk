@@ -34,25 +34,32 @@ int iconv_to_utf8(char *content, char *from_encode){
   if(convert_val < 0) return -1;
   iconv_close(cd);
   printf("out char:%s\n", outbuf);
- //
- // //int len = strlen(content);
- // int len = 9;
- // printf("%d", len);
- // //  char *tocontent = (char*)malloc(sizeof(char*));
- // //memset(tocontent, 0, strlen(tocontent));
- // char **pin = &content;
- // 
- // int outlen = 255;
- // char outcontent[255];
- // memset(outcontent, 0 , outlen);
- // //  char *tmp_out = *outcontent;
- // //  char **pout = &tmp_out;
- //
- // //  int t =  iconv(cd, pin, &len, pout, &outlen);
- // int t =  iconv(cd, pin, &len, **outcontent, &outlen);
- // if(t == 0)  return 0;
- // iconv_close(cd);
-  //  puts(*pout);
-  //  printf("%s\n", *pout);
   return 0;
+}
+
+char* iconv_utf8(char *content,char *out_cnt, char *from_encode){
+  iconv_t cd = iconv_open("utf8", from_encode);
+  printf("cd value:%d\n", (int)cd);
+  if(cd <= 0) return *content;
+  
+  size_t inlen = strlen(content)+1;
+  printf("content length:%d\n", inlen);
+  int outint = strlen(content)+1;
+  outint = outint * 2;
+  size_t outlen = outint;
+  char outbuf[outint];
+  char *pin = content;
+  char *pout = outbuf;
+  
+  int convert_val = iconv(cd, &pin, &inlen, &pout, &outlen);
+  printf("convert_val:%d\n", (int)convert_val);
+  printf("out char:%s\n", outbuf);
+  //if(convert_val < 0) return -1;
+  iconv_close(cd);
+  printf("out char:%s\n", outbuf);
+
+  int count = strlen(outbuf) > strlen(out_cnt) ? strlen(out_cnt) : strlen(outbuf);
+  strcpy(out_cnt, outbuf);
+  printf("out_cnt:%s \n", out_cnt);
+  return out_cnt;
 }
